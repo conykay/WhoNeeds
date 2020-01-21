@@ -1,0 +1,88 @@
+package com.novatta.bmb.utils;
+
+import android.app.IntentService;
+import android.content.Intent;
+import android.os.Build;
+import android.util.Log;
+
+import androidx.annotation.Nullable;
+
+import com.novatta.bmb.BuildConfig;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+/**
+ * created by Conelius on 1/17/2020 at 1:21 PM
+ */
+public class SampleSchedulingService extends IntentService {
+    /**
+     * Creates an IntentService.  Invoked by your subclass's constructor.
+     *
+     */
+    public SampleSchedulingService() {
+        super("SchedulingService");
+    }
+
+    @Override
+    protected void onHandleIntent(@Nullable Intent intent) {
+
+        OutputStream os = null;
+        InputStream is = null;
+        HttpURLConnection conn = null;
+
+        try {
+            // constants
+            URL url = new URL("https://betmebackupdate.s3.eu-central-1.amazonaws.com/version.php/");
+            JSONObject jsonObject = new JSONObject();
+            int currentversionCode = BuildConfig.VERSION_CODE;
+            jsonObject.put("version",currentversionCode);
+
+            String message = jsonObject.toString();
+            StringBuffer response = null;
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setReadTimeout(30000);
+            conn.setConnectTimeout(35000);
+            conn.setRequestMethod("POST");
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
+            conn.setFixedLengthStreamingMode(message.getBytes().length);
+
+            //make some HTTP reder nicety
+
+            conn.setRequestProperty("Content-Type","application/json;charset=utf-8");
+            conn.setRequestProperty("X-Requested-with","XMLHttpRequest");
+
+            //open
+
+            conn.connect();
+
+            //setup send
+
+            os = new BufferedOutputStream(conn.getOutputStream());
+            os.write(message.getBytes());
+
+            Log.d("SEND TO SERVER", String.valueOf(message.getBytes().length));
+//            Log.d("CONNECTION STATUS", String.valueOf(conn.getResponseCode()));
+
+            //clean up
+
+            os.flush();
+
+            //do something with response
+
+            is = conn.getInputStream();
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String inputLine;
+            response = new StringBuffer();
+            while ((inputLine = in.readLine())!= null){
+                response.append(
