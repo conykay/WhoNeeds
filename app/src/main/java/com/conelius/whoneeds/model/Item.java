@@ -9,12 +9,12 @@ public class Item {
     private String itemColor;
     private int itemQuantity;
     private int itemSize;
-    private int dateItemAdded;
+    private String dateItemAdded;
 
     public Item() {
     }
 
-    public Item(String itemName, String itemColor, int itemQuantity, int itemSize, int dateItemAdded) {
+    public Item(String itemName, String itemColor, int itemQuantity, int itemSize, String dateItemAdded) {
         this.itemName = itemName;
         this.itemColor = itemColor;
         this.itemQuantity = itemQuantity;
@@ -22,7 +22,7 @@ public class Item {
         this.dateItemAdded = dateItemAdded;
     }
 
-    public Item(int id, String itemName, String itemColor, int itemQuantity, int itemSize, int dateItemAdded) {
+    public Item(int id, String itemName, String itemColor, int itemQuantity, int itemSize, String dateItemAdded) {
         this.id = id;
         this.itemName = itemName;
         this.itemColor = itemColor;
@@ -71,11 +71,11 @@ public class Item {
         this.itemSize = itemSize;
     }
 
-    public int getDateItemAdded() {
+    public String getDateItemAdded() {
         return dateItemAdded;
     }
 
-    public void setDateItemAdded(int dateItemAdded) {
+    public void setDateItemAdded(String dateItemAdded) {
         this.dateItemAdded = dateItemAdded;
     }
 }

@@ -1,88 +1,81 @@
 package com.conelius.whoneeds;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-
-import com.conelius.whoneeds.data.DatabaseHandler;
-import com.conelius.whoneeds.model.Item;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
+import com.conelius.whoneeds.data.DatabaseHandler;
+import com.conelius.whoneeds.model.Item;
+import com.conelius.whoneeds.ui.RecyclerViewAdapter;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
+
+import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class ListActivity extends AppCompatActivity {
+
+    private static final String TAG = "ListActivity" ;
+    private RecyclerView recyclerView;
+    private RecyclerViewAdapter recyclerViewAdapter;
+    private List<Item> itemList;
+    private DatabaseHandler databaseHandler;
+    private FloatingActionButton fab;
+    private AlertDialog alertDialog;
     private AlertDialog.Builder builder;
-    private AlertDialog dialog;
     private Button saveButton;
     private EditText item;
     private EditText itemQuantity;
     private EditText itemColor;
     private EditText itemSize;
-    private DatabaseHandler databaseHandler;
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
+        setContentView(R.layout.activity_list);
 
         databaseHandler = new DatabaseHandler(this);
 
-        byPassActivity();
-        //check if item was saved
+        recyclerView = findViewById(R.id.recyclerView);
+        fab = findViewById(R.id.fab);
 
-        List<Item> items = databaseHandler.getAllItems();
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        
+        itemList = new ArrayList<>();
+        
+        //get items from db
+        
+        itemList = databaseHandler.getAllItems();
 
-        for (Item item : items) {
-            Log.d("Main", "onCreate: "+item.getDateItemAdded());
+        for (Item item : itemList) {
+            Log.d(TAG, "onCreate:"+ item.getItemColor());
         }
 
+        recyclerViewAdapter = new RecyclerViewAdapter(this,itemList);
+        recyclerView.setAdapter(recyclerViewAdapter);
+        recyclerViewAdapter.notifyDataSetChanged();
 
-        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-
-                CreatePopupDialog();
-
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
+            public void onClick(View v) {
+                createPopupDialog();
             }
         });
+        
     }
 
-    private void byPassActivity() {
-
-        if (databaseHandler.getItemCount() > 0) {
-            startActivity(new Intent(MainActivity.this,ListActivity.class));
-            finish();
-        }
-
-
-    }
-
-
-    private void CreatePopupDialog() {
-
+    private void createPopupDialog() {
         builder = new AlertDialog.Builder(this);
-
         View view = getLayoutInflater().inflate(R.layout.poup,null);
 
         item = view.findViewById(R.id.item);
@@ -112,8 +105,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         builder.setView(view);
-        dialog = builder.create();//creating our dialog object
-        dialog.show();//important step
+        alertDialog = builder.create();
+        alertDialog.show();
     }
 
     private void saveItem(View view) {
@@ -137,34 +130,13 @@ public class MainActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                dialog.dismiss();
+                alertDialog.dismiss();
 
-                startActivity(new Intent(MainActivity.this, ListActivity.class));
+                startActivity(new Intent(ListActivity.this, ListActivity.class));
+                finish();
             }
         },1200);
 
         //Todo: move to next screen
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 }
