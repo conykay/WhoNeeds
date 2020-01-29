@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.conelius.whoneeds.R;
 import com.conelius.whoneeds.data.DatabaseHandler;
 import com.conelius.whoneeds.model.Item;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.text.MessageFormat;
 import java.util.List;
@@ -99,21 +101,85 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         @Override
         public void onClick(View v) {
             int position;
+            position = getAdapterPosition();
+            Item item = itemList.get(position);
             switch (v.getId()) {
                 case R.id.editButton:
                     //edit item
-
-
-
+                    editItem(item);
                     break;
                 case R.id.deleteButton:
                     //delete item
-                    position = getAdapterPosition();
-                    Item item = itemList.get(position);
                     deleteItem(item.getId());
 
                     break;
             }
+        }
+
+        private void editItem(final Item newItem) {
+
+            builder = new Builder(context);
+            layoutInflater = LayoutInflater.from(context);
+            final View view = layoutInflater.inflate(R.layout.poup,null);
+
+            final EditText item;
+            final EditText itemQuantity;
+            final EditText itemColor;
+            final EditText itemSize;
+            TextView title;
+            Button saveButton;
+
+            item = view.findViewById(R.id.item);
+            itemColor = view.findViewById(R.id.itemColor);
+            itemQuantity = view.findViewById(R.id.itemQuantity);
+            itemSize = view.findViewById(R.id.itemSize);
+            title = view.findViewById(R.id.title);
+            saveButton = view.findViewById(R.id.saveButton);
+
+            title.setText(R.string.edit_item);
+            saveButton.setText(R.string.update_text);
+
+            item.setText(newItem.getItemName());
+            itemColor.setText(newItem.getItemColor());
+            itemQuantity.setText(String.valueOf(newItem.getItemQuantity()));
+            itemSize.setText(String.valueOf( newItem.getItemSize()));
+
+            builder.setView(view);
+            alertDialog = builder.create();
+            alertDialog.show();
+
+            saveButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //update our items
+
+                    DatabaseHandler db = new DatabaseHandler(context);
+
+                    //update our items
+
+                    newItem.setItemName(item.getText().toString().trim());
+                    newItem.setItemQuantity(Integer.valueOf(itemQuantity.getText().toString()));
+                    newItem.setItemColor(itemColor.getText().toString().trim());
+                    newItem.setItemSize(Integer.valueOf(itemSize.getText().toString()));
+
+
+                    if (!item.getText().toString().isEmpty()
+                            && !itemColor.getText().toString().isEmpty()
+                            && !itemQuantity.getText().toString().isEmpty()
+                            && !itemSize.getText().toString().isEmpty()) {
+                        db.updateItem(newItem);
+                        notifyItemChanged(getAdapterPosition(),newItem); // pass actual ob ject changed
+
+                    } else {
+                        Snackbar.make(view,"Fields Empty",Snackbar.LENGTH_SHORT).show();
+                    }
+
+                    alertDialog.dismiss();
+
+
+                }
+            });
+
         }
 
         private void deleteItem(final int id) {
